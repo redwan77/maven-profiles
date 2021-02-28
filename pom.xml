@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.4.0</version>
+		<relativePath /> <!-- lookup parent from repository -->
+	</parent>
+
+	<groupId>com.redouan.tutorials</groupId>
+	<artifactId>multiple-maven-profiles</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>maven-multiple-profile</name>
+	<description>demo for maven multi profile</description>
+
+    <!-- we can add properties to this tag and then refere to them as ${project.nameOfProperty} -->
+	<properties>
+		<java.version>1.8</java.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<!-- default build configuration -->
+	<build>
+	
+		<!-- this plugin used to configure the filtering -->
+		<!-- using maven with spring-boot we have to use @prop.name@ to be bound to a pom property -->
+		<!-- we can use the classical ${prop.name} by configuring the maven-resources plugin and set its property useDefaultDelimiters to true (weird!) -->
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<configuration>
+					<encoding>UTF-8</encoding>
+					<delimiters>@</delimiters>
+					<useDefaultDelimiters>true</useDefaultDelimiters>
+				</configuration>
+			</plugin>
+		</plugins>
+		
+		<!-- we can add filtered files if the were out of the default filtered resources, by include their paths in this section -->
+		<!-- this way is better because we will not have to edit our pom properties each build -->
+		<filters>
+			<filter>src/main/filtred-resources/filtred-resource.properties</filter>
+		</filters>
+		
+		<!-- by defualt this is the resource directory, but in order to override the filtering (default = false) option we need to redeclare it -->
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+		
+		
+	</build>
+
+	<!-- Within each profile element, we can configure many elements such as dependencies, plugins, resources, finalName, properties (props for filtering) -->
+	<profiles>
+		<profile>
+			<id>prod</id>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<executions>
+							<execution>
+								<phase>
+									compile
+								</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<tasks>
+										<echo>using prod env</echo>
+										<!-- remove the generated default application properties file -->
+										<delete
+											file="${project.build.outputDirectory}/application.properties" />
+										<!-- copy the properties of the env to the application properties -->
+										<copy
+											file="src/main/resources/application.prod.properties"
+											tofile="${project.build.outputDirectory}/application.g.properties" />
+										<!-- remove the unrelated the properties file to the env -->
+										<delete
+											file="${project.build.outputDirectory}/application.prod.properties" />
+										<!-- remove the unrelated the properties file to the env -->
+										<delete
+											file="${project.build.outputDirectory}/application.test.properties" />
+									</tasks>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>test</id>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<executions>
+							<execution>
+								<phase>compile</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<tasks>
+										<echo>using test env</echo>
+										<!-- remove the generated default application properties file -->
+										<delete
+											file="${project.build.outputDirectory}/application.properties" />
+										<!-- copy the properties of the env to the application properties -->
+										<copy
+											file="src/main/resources/application.test.properties"
+											tofile="${project.build.outputDirectory}/application.properties" />
+										<!-- remove the unrelated the properties file to the env -->
+										<delete
+											file="${project.build.outputDirectory}/application.prod.properties" />
+										<!-- remove the unrelated the properties file to the env -->
+										<delete
+											file="${project.build.outputDirectory}/application.test.properties" />
+									</tasks>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>dev</id>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<executions>
+							<execution>
+								<phase>compile</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<tasks>
+										<echo>using dev env</echo>
+										<!-- remove the unrelated the properties file to the env -->
+										<delete
+											file="${project.build.outputDirectory}/application.prod.properties" />
+										<!-- remove the unrelated the properties file to the env -->
+										<delete
+											file="${project.build.outputDirectory}/application.test.properties" />
+									</tasks>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!-- we can attache properties to a profile inside <properties> , and then bound them to the attributes of properties files (resources) -->
+		<profile>
+			<id>propProfile</id>
+			<properties>
+				<db.driverClassName>com.mysql.jdbc.Driver</db.driverClassName>
+				<db.url>jdbc:mysql://live01:3306/prod</db.url>
+				<db.username>mkyong</db.username>
+				<db.password>8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92</db.password>
+			</properties>
+		</profile>
+		
+		
+		<!-- we can delegate the properties of a profile to an external file and then add the that file to the filters , it is a better to dio not modify the pom each build -->
+		<profile>
+			<id>propProfileTest</id>
+			<properties>
+			 	<maven.test.skip>true</maven.test.skip>
+			</properties>
+			<build>
+				<filters>
+					<filter>src/main/resources/application.test.properties</filter>
+				</filters>
+			</build>
+		</profile>
+	</profiles>
+
+
+</project>
+
+
+
+
+
+
+
+
+
+
+
+
+
