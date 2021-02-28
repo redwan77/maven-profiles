@@ -189,7 +189,7 @@
 		</profile>
 		
 		
-		<!-- we can delegate the properties of a profile to an external file and then add the that file to the filters , it is a better to dio not modify the pom each build -->
+		<!-- we can delegate the properties of a profile to an external file and then add the that file to the filters , it is a better to do not modify the pom each build -->
 		<profile>
 			<id>propProfileTest</id>
 			<properties>
